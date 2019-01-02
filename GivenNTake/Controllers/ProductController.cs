@@ -7,6 +7,7 @@ using GivenNTake.Data;
 using GivenNTake.Model;
 using GivenNTake.Model.DTO;
 using GivenNTake.Model.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -69,6 +70,7 @@ namespace GivenNTake.Controllers
             };
         }
 
+        [Authorize]
         [HttpPost("")]
         public async Task<IActionResult> AddNewProduct([FromBody] NewProductDTO newProduct)
         {
@@ -84,13 +86,13 @@ namespace GivenNTake.Controllers
             {
                 return new BadRequestObjectResult("The provided category and sub category doesnt exist");
             }
-            City city = _context.Cities.Single(c=> c.Name == newProduct.City);
+            City city = _context.Cities.FirstOrDefault(c=> c.Name == newProduct.City);
             if(city == null)
             {
                 return new BadRequestObjectResult("The provided city doesnt exist");
             }
 
-            var user = await _context.Users.FindAsync("seller1@seller.com");
+            var user = await _context.Users.FindAsync(User.Identity.Name);
             var product = new Product()
             {
                 Owner = user,
@@ -146,6 +148,86 @@ namespace GivenNTake.Controllers
 
             return Ok(_productMapper.Map<ProductDTO[]>(products));
 
+        }
+
+        [AllowAnonymous]
+        [HttpGet("searchcategory/{category}/{subcategory=all}/")]
+        public async Task<ActionResult<ProductDTO[]>> SearchByCategory(string category, string subcategory, string location = "all",
+            bool imageOnly = false)
+        {
+            if (string.IsNullOrEmpty(category))
+            {
+               // _logger.LogWarning("An empty category was sent from the client. SubCategory: '{SubCategory}', Location: '{Location}'", subcategory, location);
+                return BadRequest();
+            }
+
+            IQueryable<Product> productsQuery = _context.Products
+                .Include(p => p.Owner)
+                .Include(p => p.City)
+                .Include(p => p.Media)
+                .Include(p => p.Category)
+                .ThenInclude(c => c.ParentCategory);
+
+            if (location != "all")
+            {
+                productsQuery = productsQuery.Where(p => p.City.Name == location);
+            }
+            if (subcategory != "all")
+            {
+                productsQuery = productsQuery.Where(p => p.Category.Name == subcategory)
+                    .Where(p => p.Category.ParentCategory.Name == category);
+            }
+            else
+            {
+                productsQuery = productsQuery.Where(p => p.Category.Name == category || p.Category.ParentCategory.Name == category);
+            }
+            var products = await productsQuery.ToListAsync();
+
+            return Ok(_productMapper.Map<ProductDTO[]>(products));
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("categories")]
+        public async Task<ActionResult> AddCategory([FromBody] NewCategoryDTO newCategory)
+        {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var category = await _context.Categories
+                .Include(c => c.Subcategories)
+                .SingleOrDefaultAsync(c =>
+                    c.Name == newCategory.CategoryName &&
+                    c.ParentCategory == null);
+
+            if(!string.IsNullOrEmpty(newCategory.SubcategoryName)) // adding subcategory to existing category
+            {
+                if(category == null)
+                {
+                    return NotFound(new SerializableError() { { nameof(newCategory.CategoryName), "Category not found" } });
+                }
+
+                if(category.Subcategories.Any(c => c.Name == newCategory.SubcategoryName)) // subcategory already exist
+                {
+                    return Ok();
+                }
+                _context.Categories.Add(new Category() { Name = newCategory.SubcategoryName, ParentCategory = category });
+            } 
+            else if(category == null) // Adding a new parent category
+            {
+                _context.Categories.Add(new Category() { Name = newCategory.CategoryName });
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        [Authorize(Policy = "ExperiencedUser")]
+        [HttpPost("categories2")]
+        public Task<ActionResult> AddCategory2([FromBody] NewCategoryDTO newCategory)
+        {
+            return AddCategory(newCategory);
         }
     }
 }

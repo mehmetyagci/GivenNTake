@@ -1,4 +1,6 @@
 ﻿using GivenNTake.Model;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -7,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace GivenNTake.Data
 {
-    public class GiveNTakeContext : DbContext
+    public class GiveNTakeContext : IdentityDbContext<User>
     {
         public GiveNTakeContext(DbContextOptions<GiveNTakeContext> options) 
             :base(options)
@@ -18,8 +20,6 @@ namespace GivenNTake.Data
         public DbSet<Message> Messages { get; set; }
         public DbSet<Category> Categories{ get; set; }
         public DbSet<City> Cities { get; set; }
-        public DbSet<User> Users { get; set; }
-
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -32,6 +32,23 @@ namespace GivenNTake.Data
                 .HasOne(p => p.Category)
                 .WithMany()
                 .IsRequired();
+
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Owner)
+                .WithMany(u=> u.Products)
+                .IsRequired(true);
+
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.Product)
+                .WithMany();
+
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.FromUser)
+                .WithMany();
+
+            modelBuilder.Entity<Message>().HasOne(m => m.ToUser);
+
+            base.OnModelCreating(modelBuilder);
         }
 
         public void SeedData()
@@ -67,7 +84,15 @@ namespace GivenNTake.Data
                     new User() { Id = "buyer1@buyer.com" },
                     new User() { Id = "buyer2@buyer2.com" });
                 SaveChanges();
+            }
+        }
 
+        public async Task SeedRoleAsync(RoleManager<IdentityRole> roleManager)
+        {
+            if(!await roleManager.RoleExistsAsync("Admin"))
+            {
+                var admin = new IdentityRole("Admin");
+                await roleManager.CreateAsync(admin);
             }
         }
     }
