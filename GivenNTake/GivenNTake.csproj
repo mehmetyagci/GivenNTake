@@ -25,4 +25,6 @@
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
+  <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JSONSchema="http://json.schemastore.org/launchsettings" /></VisualStudio></ProjectExtensions>
+
 </Project>

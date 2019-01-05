@@ -1,4 +1,4 @@
-﻿using GivenNTake.Data;
+﻿using GiveNTake.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace GivenNTake.Extensions
+namespace GiveNTake.Extensions
 {
     public static class WebHostExtensions
     {

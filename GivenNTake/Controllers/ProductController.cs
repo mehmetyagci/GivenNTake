@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using GivenNTake.Data;
-using GivenNTake.Model;
-using GivenNTake.Model.DTO;
-using GivenNTake.Model.DTOs;
+using GiveNTake.Data;
+using GiveNTake.Model;
+using GiveNTake.Model.DTO;
+using GiveNTake.Model.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 
-namespace GivenNTake.Controllers
+namespace GiveNTake.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -236,6 +236,13 @@ namespace GivenNTake.Controllers
         public Task<ActionResult> AddCategory2([FromBody] NewCategoryDTO newCategory)
         {
             return AddCategory(newCategory);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("error")]
+        public ActionResult ThrowError()
+        {
+            throw new InvalidOperationException("This is an example of unhandled exception");
         }
     }
 }

@@ -1,10 +1,10 @@
-﻿using GivenNTake.Model.DTO;
+﻿using GiveNTake.Model.DTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace GivenNTake.Model.DTOs
+namespace GiveNTake.Model.DTOs
 {
     public class ProductDTO
     {

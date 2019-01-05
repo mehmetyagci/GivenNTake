@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace GivenNTake.Model
+namespace GiveNTake.Model
 {
     public class NewProductDTO
     {

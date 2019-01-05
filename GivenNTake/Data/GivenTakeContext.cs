@@ -1,4 +1,4 @@
-﻿using GivenNTake.Model;
+﻿using GiveNTake.Model;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace GivenNTake.Data
+namespace GiveNTake.Data
 {
     public class GiveNTakeContext : IdentityDbContext<User>
     {

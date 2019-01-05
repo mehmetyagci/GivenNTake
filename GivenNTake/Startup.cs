@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using GivenNTake.Data;
-using GivenNTake.Model;
+using GiveNTake.Data;
+using GiveNTake.Infrastructure.APIErrors;
+using GiveNTake.Infrastructure.CorrelationID;
+using GiveNTake.Model;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -18,7 +20,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
-namespace GivenNTake
+namespace GiveNTake
 {
     public class Startup
     {
@@ -43,6 +45,7 @@ namespace GivenNTake
                 .RequireAuthenticatedUser()
                 .Build();
                 config.Filters.Add(new AuthorizeFilter(policy));
+                config.Filters.Add<GlobalExceptionFilter>();
             });           
 
             services.AddDbContext<GiveNTakeContext>(options =>
@@ -99,6 +102,9 @@ namespace GivenNTake
                 app.UseDeveloperExceptionPage();
             }
             app.UseStaticFiles();
+
+            // Each response will include a 'X-Correlation-ID' header 
+            app.UseCorrelationIdHeader();
 
             app.UseAuthentication();
             

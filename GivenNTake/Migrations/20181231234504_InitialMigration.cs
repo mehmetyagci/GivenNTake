@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace GivenNTake.Migrations
+namespace GiveNTake.Migrations
 {
     public partial class InitialMigration : Migration
     {

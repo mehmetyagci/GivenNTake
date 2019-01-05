@@ -6,8 +6,8 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using GivenNTake.Model;
-using GivenNTake.Model.DTO;
+using GiveNTake.Model;
+using GiveNTake.Model.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
-namespace GivenNTake.Controllers
+namespace GiveNTake.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]")]
