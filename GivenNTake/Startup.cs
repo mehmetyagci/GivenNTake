@@ -3,21 +3,19 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using GivenNTake.Data;
 using GivenNTake.Model;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace GivenNTake
@@ -36,7 +34,7 @@ namespace GivenNTake
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            IdentityModelEventSource.ShowPII = true; //To show detail of error and see the problem
+            //IdentityModelEventSource.ShowPII = true; //To show detail of error and see the problem
 
             services.AddCors(); // add the CORS middleware
             services.AddMvc(config =>
@@ -86,9 +84,10 @@ namespace GivenNTake
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            UpdateDatabase(app);
+            app.UseDefaultFiles();
+            //UpdateDatabase(app);
             app.UseCors(b =>
             {
                 b.AllowAnyHeader();
@@ -99,11 +98,16 @@ namespace GivenNTake
             {
                 app.UseDeveloperExceptionPage();
             }
+            app.UseStaticFiles();
 
             app.UseAuthentication();
-            app.UseDefaultFiles();
-            app.UseStaticFiles();
-            app.UseMvcWithDefaultRoute();                       
+            
+           
+            app.UseMvcWithDefaultRoute();
+
+            var appInsightsLogLevel = Configuration.GetValue<LogLevel>("Logging:Application Insights:LogLevel:Default");
+            loggerFactory.AddApplicationInsights(app.ApplicationServices, (s, level) => { return level >= LogLevel.Warning; });
+
         }
 
         private static void UpdateDatabase(IApplicationBuilder app)

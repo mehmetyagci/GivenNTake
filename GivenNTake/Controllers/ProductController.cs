@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
 
 namespace GivenNTake.Controllers
 {
@@ -18,6 +20,8 @@ namespace GivenNTake.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
+        private readonly GiveNTakeContext _context;
+        private readonly ILogger<ProductController> _logger;
         private static readonly IMapper _productMapper;
 
         static ProductController()
@@ -43,32 +47,36 @@ namespace GivenNTake.Controllers
 
             });
             _productMapper = config.CreateMapper();
-        }
-
-        private readonly GiveNTakeContext _context;
-        public ProductController(GiveNTakeContext context)
+        }               
+        
+        public ProductController(GiveNTakeContext context, ILogger<ProductController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
-        public string[] GetProducts()
+        [AllowAnonymous]
+        [HttpGet]
+        [HttpGet("all")]
+        public async Task<ActionResult<ProductDTO[]>> GetProducts()
         {
-            return new[]
-            {
-                "1 - Microwave",
-                "2 - Washing Machine",
-                "3 - Mirror"
-            };
+            var products = await _context.Products
+                 .Include(p => p.Owner)
+                 .Include(p => p.City)
+                 .Include(p => p.Category)
+                 .ThenInclude(c => c.ParentCategory)
+                 .ToListAsync();
+            return _productMapper.Map<ProductDTO[]>(products);
         }
 
-        [HttpGet("searchcategory/{category}/{subcategory=all}")]
-        public string[] SearchByProduct(string category, string subcategory, string location = "all", bool imageOnly = false)
-        {
-            return new[]
-            {
-                $"Category: {category}, Subcategory: {subcategory}, Location: {location}, Only with Images: {imageOnly}"
-            };
-        }
+        //[HttpGet("searchcategory/{category}/{subcategory=all}")]
+        //public string[] SearchByProduct(string category, string subcategory, string location = "all", bool imageOnly = false)
+        //{
+        //    return new[]
+        //    {
+        //        $"Category: {category}, Subcategory: {subcategory}, Location: {location}, Only with Images: {imageOnly}"
+        //    };
+        //}
 
         [Authorize]
         [HttpPost("")]
@@ -156,8 +164,8 @@ namespace GivenNTake.Controllers
             bool imageOnly = false)
         {
             if (string.IsNullOrEmpty(category))
-            {
-               // _logger.LogWarning("An empty category was sent from the client. SubCategory: '{SubCategory}', Location: '{Location}'", subcategory, location);
+            {                
+                _logger.LogWarning("An empty category was sent from the client. SubCategory: '{SubCategory}', Location: '{Location}'", subcategory, location);
                 return BadRequest();
             }
 
